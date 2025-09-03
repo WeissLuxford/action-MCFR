@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест компетенций для менеджера по продажам</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-option.selected {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: white;
+            border-color: #2563eb; /* border-blue-700 */
+        }
+        .quiz-option.correct {
+            background-color: #22c55e !important; /* bg-green-500 */
+            color: white !important;
+            border-color: #16a34a !important;
+        }
+        .quiz-option.incorrect {
+            background-color: #ef4444 !important; /* bg-red-500 */
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+        .quiz-option:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        #explanation-area.correct-explanation {
+            border-left-color: #22c55e;
+            border-left-width: 4px;
+        }
+        #explanation-area.incorrect-explanation {
+            border-left-color: #ef4444;
+            border-left-width: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-auto transition-all duration-500">
+        <div class="p-6 md:p-8" id="quiz-container">
+            <div id="quiz-header" class="mb-6 text-center">
+                 <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Тест компетенций: Холодные звонки</h1>
+                 <p class="text-slate-500 mt-2">Оцените свои навыки в продажах</p>
+            </div>
+
+            <div id="question-area">
+                <!-- Вопросы будут вставляться сюда -->
+            </div>
+
+            <div id="quiz-footer" class="mt-8 flex justify-between items-center">
+                <span id="progress-text" class="text-sm font-medium text-slate-500">Вопрос 1 из 21</span>
+                <button id="next-btn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-transform transform hover:scale-105 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none">Проверить</button>
+            </div>
+        </div>
+
+        <div id="result-container" class="p-6 md:p-8 text-center hidden">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Тест завершен!</h2>
+            <p class="text-lg text-slate-600 mb-4">Ваш результат: <span id="score" class="font-bold"></span> из <span id="total-questions" class="font-bold"></span></p>
+            
+            <div id="result-details" class="text-left bg-slate-50 p-6 rounded-lg border border-slate-200">
+                <h3 id="result-title" class="text-xl font-bold text-slate-800 text-center mb-4"></h3>
+                <div id="result-content" class="space-y-4 text-slate-700">
+                    <!-- Интерпретация результатов будет здесь -->
+                </div>
+            </div>
+
+            <button id="restart-btn" class="mt-8 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">Пройти еще раз</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "1. Как правильно начать холодный звонок?", options: ["«Здравствуйте, могу отнять минутку?»", "«Здравствуйте, я представляю компанию Х, мы предлагаем...»", "«Здравствуйте, меня зовут…, из компании Х. Удобно ли говорить?»", "«Вы директор?»"], answer: "«Здравствуйте, меня зовут…, из компании Х. Удобно ли говорить?»", explanation: "Этот вариант самый корректный. Он вежлив, демонстрирует уважение ко времени клиента и сразу задает профессиональный тон разговора." },
+            { question: "2. Как лучше всего представиться?", options: ["«Это компания Х, мы занимаемся…»", "«Меня зовут…, я звоню из компании Х. Мы помогаем клиентам решать задачу Y»", "«Я из Х, скажите, вы занимаетесь закупками?»", "«Это Х, сразу скажу, звоню по поводу продаж»"], answer: "«Меня зовут…, я звоню из компании Х. Мы помогаем клиентам решать задачу Y»", explanation: "Лучший подход — сразу говорить о выгоде для клиента. Фраза «помогаем решать задачу Y» цепляет внимание гораздо сильнее, чем простое перечисление услуг." },
+            { question: "3. Что делать, если клиент отвечает холодно: «Говорите быстрее, у меня мало времени»?", options: ["Завершить разговор.", "Сжато и по делу обозначить ценность.", "Извиниться и сбросить трубку.", "Начать задавать подробные вопросы."], answer: "Сжато и по делу обозначить ценность.", explanation: "Нужно уважать просьбу клиента. Краткий, но емкий ответ о пользе вашего предложения — единственный шанс заинтересовать его за несколько секунд." },
+            { question: "4. Что важнее всего в начале звонка?", options: ["Рассказать о компании.", "Выяснить задачи клиента.", "Сразу назначить встречу.", "Озвучить скидку."], answer: "Выяснить задачи клиента.", explanation: "Продажа начинается с понимания потребностей. Без этого любое предложение будет «пальцем в небо» и, скорее всего, вызовет отторжение." },
+            { question: "5. Как лучше задать вопрос про потребности?", options: ["«Скажите, у вас есть потребность в нашем продукте?»", "«Как вы сейчас решаете задачу X?»", "«Вы хотите сэкономить?»", "«Нужна ли вам автоматизация?»"], answer: "«Как вы сейчас решаете задачу X?»", explanation: "Открытые вопросы, которые заставляют клиента рассказать о его процессах, — ключ к выявлению «боли». Закрытые вопросы (А, В, Г) ведут к односложным ответам «да/нет»." },
+            { question: "6. Клиент говорит: «У нас всё уже есть». Что делать?", options: ["Закрыть разговор.", "Спросить: «А что именно используете сейчас?»", "Начать убеждать в преимуществах.", "Спросить: «А вдруг всё равно пригодится?»"], answer: "Спросить: «А что именно используете сейчас?»", explanation: "Эта фраза — не конец диалога, а его начало. Узнав о текущем решении, вы можете найти его слабые стороны и предложить более выгодную альтернативу." },
+            { question: "7. «У нас нет бюджета». Как реагировать?", options: ["«У нас дешево!»", "«А если цена не была бы ограничением — вам был бы интересен продукт?»", "«Хорошо, перезвоню позже».", "«Давайте я вам скину прайс»."], answer: "«А если цена не была бы ограничением — вам был бы интересен продукт?»", explanation: "Это классический прием, чтобы отделить истинное возражение от ложного. Если интерес есть, можно обсуждать варианты. Если нет — дело не в деньгах." },
+            { question: "8. «Я занят». Лучший ответ?", options: ["«Когда будет удобно перезвонить?»", "«Тогда перезвоню завтра» (и кладёт трубку).", "Продолжать говорить, пока не прервал.", "«Это важно, буквально минута»."], answer: "«Когда будет удобно перезвонить?»", explanation: "Самый профессиональный ответ. Вы уважаете время клиента, но не сдаетесь, а договариваетесь о следующем шаге. Это показывает вашу настойчивость и гибкость." },
+            { question: "9. «Мы работаем с другими поставщиками». Что спросить?", options: ["«А чем вы довольны у текущего поставщика?»", "«Мы лучше!»", "«Сколько вы у них платите?»", "«А можно контакт вашего директора?»"], answer: "«А чем вы довольны у текущего поставщика?»", explanation: "Этот вопрос позволяет понять критерии выбора клиента и найти точки, в которых ваше предложение может быть сильнее. Ответы Б и В — слишком агрессивны." },
+            { question: "10. Как правильно отработать возражение «Дорого»?", options: ["«Мы снизим цену».", "«Что для вас значит дорого?»", "«У конкурентов дороже».", "«Это не так дорого»."], answer: "«Что для вас значит дорого?»", explanation: "«Дорого» — субъективное понятие. Нужно понять, с чем сравнивает клиент: с конкурентами, с бюджетом, с ценностью, которую он видит. Без этого уточнения вы не сможете правильно аргументировать цену." },
+            { question: "11. Сколько времени оптимально тратить на «питч» в холодном звонке?", options: ["1–2 минуты", "5–7 минут", "10–15 минут", "Сколько получится"], answer: "1–2 минуты", explanation: "Внимание «холодного» клиента очень ограничено. Ваша задача — зацепить его за 60-90 секунд, чтобы он захотел продолжить разговор. Длинные презентации неуместны." },
+            { question: "12. Что должно быть в «питче»?", options: ["История компании.", "Фокус на ценности для клиента.", "Подробное перечисление всех продуктов.", "Информация о конкурентных преимуществах."], answer: "Фокус на ценности для клиента.", explanation: "Клиента интересует только одно: какую его проблему вы можете решить. Рассказывайте не о себе, а о том, какую пользу он получит." },
+            { question: "13. Клиент проявил интерес. Ваш следующий шаг?", options: ["Скинуть КП и ждать.", "Закрепить конкретное действие: встреча, демо, проба.", "Сказать: «Подумайте и позвоните».", "Спросить: «Когда вам перезвонить?»"], answer: "Закрепить конкретное действие: встреча, демо, проба.", explanation: "Инициатива всегда должна быть на стороне продавца. Четкая договоренность о следующем шаге (звонок в конкретное время, встреча) — залог продвижения сделки." },
+            { question: "14. Что считать успехом холодного звонка?", options: ["Дозвонился.", "Рассказал про компанию.", "Получил следующий шаг (встреча, демо).", "Отправил КП."], answer: "Получил следующий шаг (встреча, демо).", explanation: "Главная цель холодного звонка — не продать, а «продать» следующий этап: встречу, демонстрацию или созвон. Это и есть конверсия." },
+            { question: "15. Как завершить разговор корректно, если клиент не заинтересован?", options: ["Сбросить трубку.", "Сказать «Хорошо, удачи» и положить трубку.", "Вежливо закрыть: «Спасибо за время, можно я оставлю свои контакты на будущее?»", "Сказать «Вы пожалеете»."], answer: "Вежливо закрыть: «Спасибо за время, можно я оставлю свои контакты на будущее?»", explanation: "Всегда оставляйте дверь открытой. Вежливое завершение разговора сохраняет ваш профессиональный имидж и не исключает возможности сотрудничества в будущем." },
+            { question: "16. Какая метрика ключевая для холодных звонков?", options: ["Кол-во звонков.", "Кол-во отправленных КП.", "Конверсия в назначенные встречи.", "Время разговора."], answer: "Конверсия в назначенные встречи.", explanation: "Количество звонков — это показатель активности, но не эффективности. Именно конверсия в целевое действие (встречу) показывает, насколько качественно вы работаете." },
+            { question: "17. Что делать, если секретарь отказывает в соединении?", options: ["Отправить инфо на почту.", "Выяснить, кто принимает решение, и договориться о времени звонка.", "Позвонить снова в другое время.", "Сказать: «Мне только с директором»."], answer: "Выяснить, кто принимает решение, и договориться о времени звонка.", explanation: "Секретарь — не враг, а союзник. Узнайте у него информацию и договоритесь о правилах игры. Это гораздо эффективнее, чем пытаться «прорваться силой»." },
+            { question: "18. Как продажник должен относиться к скриптам?", options: ["Четко зачитывать слово в слово.", "Использовать как ориентир, адаптируя под клиента.", "Игнорировать.", "Переписать под себя и не согласовывать."], answer: "Использовать как ориентир, адаптируя под клиента.", explanation: "Скрипт — это каркас, а не клетка. Он помогает не сбиться с пути, но лучший продавец всегда ведет живой диалог, а не читает по бумажке." },
+            { question: "19. Что важнее при холодных звонках?", options: ["Максимальное количество звонков.", "Качество общения и выявление потребностей.", "Скидка.", "Настойчивость до отказа."], answer: "Качество общения и выявление потребностей.", explanation: "Один качественный диалог с целевым клиентом ценнее десятков бессмысленных звонков. Качество всегда побеждает количество." },
+            { question: "20. В чем отличие опытного продажника от новичка?", options: ["Делает больше звонков.", "Умеет слушать и выявлять потребности.", "Знает скрипт наизусть.", "Умеет убеждать."], answer: "Умеет слушать и выявлять потребности.", explanation: "Новички много говорят, а опытные — много слушают. Умение задавать правильные вопросы и слышать ответы — главный признак мастерства." },
+            { question: "21. Сколько касаний в среднем нужно, чтобы «пробить» холодный контакт?", options: ["1–2", "3–5", "6–8", "10+"], answer: "6–8", explanation: "Продажи в B2B — это марафон, а не спринт. Исследования показывают, что для достижения результата требуется в среднем 6-8 контактов с клиентом. Настойчивость и системность — ключ к успеху." }
+        ];
+
+        const resultInterpretations = {
+             expert: {
+                title: "Эксперт в продажах (сильный игрок)",
+                content: `<p class="font-semibold text-slate-800">Сильные стороны:</p><ul class="list-disc list-inside space-y-1"><li>Глубокое понимание процесса холодных звонков.</li><li>Умение строить доверительный контакт с первых секунд.</li><li>Четко отрабатывает возражения, умеет вести клиента к следующему шагу.</li><li>Знает метрики, умеет работать с фильтрами и лицами, принимающими решения.</li></ul><p class="font-semibold text-slate-800 mt-4">Что можно развивать:</p><ul class="list-disc list-inside space-y-1"><li>Наставничество для младших коллег.</li><li>Стратегические навыки: управление отделом продаж, построение скриптов, аналитика воронки.</li><li>Обучение переговорам на более высоком уровне (C-level, закупочные комитеты).</li></ul><p class="font-semibold text-slate-800 mt-4">Карьерный план и рекомендации:</p><ul class="list-disc list-inside space-y-1"><li>Рассматривать позиции тимлида / руководителя группы продаж.</li><li>Инициировать обучение команды, брать роль тренера.</li><li>Аргументированно претендовать на повышение зарплаты или бонусов, так как ценность уже подтверждена результатами.</li></ul>`
+            },
+            practitioner: {
+                title: "Уверенный практик (сильный специалист)",
+                content: `<p class="font-semibold text-slate-800">Сильные стороны:</p><ul class="list-disc list-inside space-y-1"><li>Хорошо владеет базовыми техниками.</li><li>Умеет вести клиента от «холодного» контакта до следующего шага.</li><li>Понимает важность выявления потребностей и умения слушать.</li></ul><p class="font-semibold text-slate-800 mt-4">Что можно развивать:</p><ul class="list-disc list-inside space-y-1"><li>Техника глубокого выяснения боли клиента.</li><li>Управление временем звонка (чтобы не терять фокус).</li><li>Дополнительные инструменты: CRM-аналитика, современные подходы к social selling.</li></ul><p class="font-semibold text-slate-800 mt-4">Карьерный план и рекомендации:</p><ul class="list-disc list-inside space-y-1"><li>Сосредоточиться на росте до уровня старшего менеджера по продажам.</li><li>Запросить участие в тренингах по переговорам и работе с крупными клиентами.</li><li>При хороших результатах можно обосновать повышение оклада или KPI-бонусов.</li></ul>`
+            },
+            middle: {
+                title: "Средний уровень (работает, но не системно)",
+                content: `<p class="font-semibold text-slate-800">Сильные стороны:</p><ul class="list-disc list-inside space-y-1"><li>Знает основы продаж, ориентируется в базовых скриптах.</li><li>Может показать результат, если клиент сам проявляет интерес.</li></ul><p class="font-semibold text-red-600 mt-4">Слабые места:</p><ul class="list-disc list-inside space-y-1"><li>Сложности с отработкой возражений.</li><li>Недостаток настойчивости в ведении до следующего шага.</li><li>Склонность к «механическому чтению скрипта».</li></ul><p class="font-semibold text-slate-800 mt-4">Карьерный план и рекомендации:</p><ul class="list-disc list-inside space-y-1"><li>Интенсивное обучение: тренинги, ролевые игры, работа под руководством опытного наставника.</li><li>Практика: 100+ звонков с последующим разбором ошибок.</li><li>Пока рано обсуждать повышение зарплаты — стоит показать устойчивую конверсию.</li></ul>`
+            },
+            beginner: {
+                title: "Начальный уровень (низкая эффективность)",
+                content: `<p class="font-semibold text-slate-800">Сильные стороны:</p><ul class="list-disc list-inside space-y-1"><li>Мотивация учиться и пробовать новое.</li><li>Может быстро набрать практику при правильном сопровождении.</li></ul><p class="font-semibold text-red-600 mt-4">Слабые места:</p><ul class="list-disc list-inside space-y-1"><li>Нет системных навыков ведения звонка.</li><li>Слабое понимание логики «контакт → выявление → ценность → следующий шаг».</li><li>Высокий риск выгорания без поддержки.</li></ul><p class="font-semibold text-slate-800 mt-4">Карьерный план и рекомендации:</p><ul class="list-disc list-inside space-y-1"><li>Сначала — обучение и наставничество. Минимум месяц «в паре» с опытным продажником.</li><li>Отработка скриптов и возражений на тренажёрах.</li><li>KPI — не результат по встречам, а выполнение нормы звонков и практики.</li><li>Зарплату и карьерный рост лучше обсуждать после появления первых стабильных результатов.</li></ul>`
+            }
+        };
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+
+        const questionArea = document.getElementById('question-area');
+        const nextBtn = document.getElementById('next-btn');
+        const progressText = document.getElementById('progress-text');
+
+        const quizContainer = document.getElementById('quiz-container');
+        const resultContainer = document.getElementById('result-container');
+        const scoreEl = document.getElementById('score');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const resultTitleEl = document.getElementById('result-title');
+        const resultContentEl = document.getElementById('result-content');
+        const restartBtn = document.getElementById('restart-btn');
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizContainer.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+            nextBtn.textContent = 'Проверить';
+            nextBtn.disabled = true;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            selectedOption = null;
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionArea.innerHTML = `
+                <div class="space-y-4">
+                    <div class="mb-4">
+                        <p class="text-lg font-semibold text-slate-700">${currentQuestion.question}</p>
+                    </div>
+                    <div class="space-y-3">
+                        ${currentQuestion.options.map((option, index) => `
+                            <button class="quiz-option w-full text-left p-4 rounded-lg border-2 border-slate-200 hover:bg-slate-100 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors" data-option="${option}">
+                                <span class="font-mono mr-2">${String.fromCharCode(65 + index)}.</span> ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                <div id="explanation-area" class="mt-4 p-4 rounded-lg bg-slate-50 hidden"></div>
+            `;
+
+            document.querySelectorAll('.quiz-option').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (button.parentElement.querySelector('.selected')) {
+                        return; // Блокируем выбор после первого клика
+                    }
+                    document.querySelectorAll('.quiz-option').forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedOption = button.dataset.option;
+                    nextBtn.disabled = false;
+                });
+            });
+
+            progressText.textContent = `Вопрос ${currentQuestionIndex + 1} из ${quizData.length}`;
+            nextBtn.disabled = true;
+        }
+
+        function showResults() {
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+            scoreEl.textContent = score;
+            totalQuestionsEl.textContent = quizData.length;
+
+            let resultKey;
+            if (score >= 18) {
+                resultKey = 'expert';
+            } else if (score >= 14) {
+                resultKey = 'practitioner';
+            } else if (score >= 10) {
+                resultKey = 'middle';
+            } else {
+                resultKey = 'beginner';
+            }
+            
+            const resultData = resultInterpretations[resultKey];
+            resultTitleEl.textContent = resultData.title;
+            resultContentEl.innerHTML = resultData.content;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (nextBtn.textContent === 'Проверить') {
+                checkAnswer();
+            } else {
+                goToNextQuestion();
+            }
+        });
+        
+        function checkAnswer() {
+             if (!selectedOption) return;
+
+            const isCorrect = selectedOption === quizData[currentQuestionIndex].answer;
+            if (isCorrect) {
+                score++;
+            }
+            
+            const optionButtons = document.querySelectorAll('.quiz-option');
+            optionButtons.forEach(button => {
+                button.disabled = true;
+                const optionText = button.dataset.option;
+
+                if (optionText === quizData[currentQuestionIndex].answer) {
+                    button.classList.add('correct');
+                }
+
+                if (optionText === selectedOption && !isCorrect) {
+                    button.classList.add('incorrect');
+                }
+            });
+            
+            const explanationText = quizData[currentQuestionIndex].explanation;
+            const explanationArea = document.getElementById('explanation-area');
+            if (explanationText && explanationArea) {
+                explanationArea.innerHTML = `<p><span class="font-bold">${isCorrect ? 'Правильно!' : 'Неверно.'}</span> ${explanationText}</p>`;
+                explanationArea.classList.remove('hidden');
+                explanationArea.classList.add(isCorrect ? 'correct-explanation' : 'incorrect-explanation');
+            }
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'Завершить тест';
+            } else {
+                 nextBtn.textContent = 'Следующий';
+            }
+            nextBtn.disabled = false;
+        }
+
+        function goToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                showQuestion();
+                nextBtn.textContent = 'Проверить';
+                nextBtn.disabled = true;
+            } else {
+                showResults();
+            }
+        }
+
+        restartBtn.addEventListener('click', startQuiz);
+
+        // Initial start
+        startQuiz();
+    </script>
+</body>
+</html>
+
