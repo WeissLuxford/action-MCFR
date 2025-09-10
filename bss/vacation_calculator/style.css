@@ -53,7 +53,7 @@ h2{margin:0 0 12px;font-size:1.1rem}
   background:var(--light);
 }
 .field input:disabled{opacity:.7}
-.help{color:#6c757d;font-size:.85rem;margin-top:4px}
+.help{display:none;color:#6c757d;font-size:.85rem;margin-top:4px}
 
 .months-header{
   display:grid;
