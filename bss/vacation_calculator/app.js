@@ -1,6 +1,4 @@
 (function(){
-  "use strict";
-
   // ===== Utils =====
   const fmt = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const clampNonNegative = (v) => isFinite(v) ? Math.max(0, v) : 0;
