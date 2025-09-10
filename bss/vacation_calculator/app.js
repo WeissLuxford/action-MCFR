@@ -1,4 +1,5 @@
 :root{
+  
   --text:#212529;
   --primary:#0d6efd;
   --white:#ffffff;
