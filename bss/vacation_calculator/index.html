@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Калькулятор отпускных</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Перенос Excel-калькулятора отпускных в чистый HTML/CSS/JS. Расчёт среднемесячного и среднедневного заработка, итоговая сумма отпускных.">
+</head>
+<body>
+  <header class="container">
+    <h1>Калькулятор отпускных</h1>
+    <p class="muted">Вводите данные — расчёт выполняется автоматически. Праздничные и воскресные дни не оплачиваются (при включённом автосчёте).</p>
+  </header>
+
+  <main class="container" role="main">
+    <section aria-labelledby="dates-title" class="card">
+      <h2 id="dates-title">Даты отпуска и период</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="startDate">Дата начала отпуска</label>
+          <input id="startDate" type="date" aria-describedby="startDateHelp" />
+          <div id="startDateHelp" class="help">Нужна для отображения «Начислений» и подписей месяцев.</div>
+        </div>
+        <div class="field">
+          <label for="endDate">Дата окончания отпуска</label>
+          <input id="endDate" type="date" aria-describedby="endDateHelp" />
+          <div id="endDateHelp" class="help">Нужно только если включён автосчёт дней.</div>
+        </div>
+        <div class="field">
+          <label for="monthsCount">Расчётный период, мес.</label>
+          <input id="monthsCount" type="number" min="1" max="36" step="1" value="12" />
+          <div class="help">Определяет количество строк «Начислений».</div>
+        </div>
+        <div class="field">
+          <label for="autoDays">
+            <input id="autoDays" type="checkbox" />
+            Считать оплачиваемые дни автоматически по датам
+          </label>
+          <div class="help">При включении учитываются воскресенья и список праздничных дат ниже.</div>
+        </div>
+        <div class="field">
+          <label for="holidays">Праздничные даты (через запятую)</label>
+          <textarea id="holidays" rows="2" placeholder="2025-01-01, 2025-03-08, 2025-03-21, ..."></textarea>
+          <div class="help">Формат: YYYY-MM-DD. Учитываются только при включённом автосчёте.</div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="income-title" class="card hidden" id="incomeCard">
+      <h2 id="income-title">Начисления</h2>
+      <div class="months-header">
+        <div>Месяц</div>
+        <div>Сумма, сум</div>
+      </div>
+      <div id="monthsList" class="months-list" aria-live="polite">
+        <!-- строки создаются JS -->
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label for="bonuses">Премии и доп. выплаты, сум</label>
+          <input id="bonuses" type="number" min="0" step="0.01" value="0" />
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="days-title" class="card">
+      <h2 id="days-title">Оплачиваемые дни</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="paidDays">Количество оплачиваемых дней</label>
+          <input id="paidDays" type="number" min="0" step="1" value="0" aria-describedby="paidDaysHelp" />
+          <div id="paidDaysHelp" class="help">Если включён автосчёт, поле станет только для просмотра.</div>
+        </div>
+      </div>
+      <p class="muted small">Подсказка: в исходном Excel пример — 18 дней.</p>
+    </section>
+
+    <section aria-labelledby="results-title" class="card results">
+    <h2 id="results-title" class="with-qmark">
+      Итоги
+      <span class="qmark" aria-label="Пояснение" tabindex="0" aria-describedby="resultsTip">
+        ?
+        <span class="qtip" role="tooltip" id="resultsTip">
+          Средняя зарплата определяется в размере 1/12 суммы от всех доходов в виде оплаты труда,
+          начисленных работнику за 12 календарных месяцев, предшествующих месяцу выхода в отпуск
+          либо выплаты денежной компенсации за неиспользованный отпуск.
+        </span>
+      </span>
+    </h2>
+      <div class="results-grid">
+        <div>
+          <div class="label">Общая сумма начислений</div>
+          <div id="totalIncome" class="value">—</div>
+          <div class="unit">сум</div>
+        </div>
+        <div>
+          <div class="label">Среднемесячный заработок</div>
+          <div id="avgMonthly" class="value">—</div>
+          <div class="unit">сум/мес</div>
+        </div>
+        <div>
+          <div class="label">Среднедневной заработок</div>
+          <div id="avgDaily" class="value">—</div>
+          <div class="unit">сум/день</div>
+        </div>
+        <div>
+          <div class="label">Сумма отпускных</div>
+          <div id="vacationPay" class="value strong">—</div>
+          <div class="unit">сум</div>
+        </div>
+      </div>
+      <div id="errors" class="errors" aria-live="assertive"></div>
+      <div class="actions">
+        <button id="resetBtn" class="btn">Сброс</button>
+        <button id="exportCsvBtn" class="btn btn-primary">Экспорт в Excel (CSV)</button>
+        <button id="printBtn" class="btn">Печать</button>
+      </div>
+
+      <details class="map">
+        <summary>Карта формул</summary>
+        <table>
+          <thead>
+            <tr>
+              <th>Excel диапазон/ячейка</th>
+              <th>JS формула/правило</th>
+              <th>Примечание</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>динамично</td><td>total = sum(months) + bonuses</td><td>Числа ≥0</td></tr>
+            <tr><td>D23 = B22/D6</td><td>avgMonthly = total / monthsCount</td><td>делитель ≠ 0</td></tr>
+            <tr><td>D25 = D23/25.3</td><td>avgDaily = avgMonthly / 25.3</td><td>2 знака</td></tr>
+            <tr><td>D31 = D27*D25</td><td>vacationPay = paidDays * avgDaily</td><td>2 знака</td></tr>
+          </tbody>
+        </table>
+      </details>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p class="muted small">Версия без фреймворков. Цвета: #212529, #0d6efd, #ffffff, #f8f9fa.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
